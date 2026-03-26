@@ -1,0 +1,17 @@
+{
+  "name": "bot-check-action",
+  "version": "1.0.0",
+  "description": "A GitHub Action that verifies whether an issue or PR was created by a bot. Supports automatic issue deletion and tagging.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "ncc build src/index.js -o dist"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@actions/core": "^1.10.1",
+    "@actions/github": "^6.0.0"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.38.1"
+  }
+}

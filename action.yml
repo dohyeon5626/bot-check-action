@@ -1,0 +1,20 @@
+name: 'Bot Check Action'
+description: 'A GitHub Action that verifies whether an issue or PR was created by a bot. Supports automatic issue deletion and tagging.'
+author: 'dohyeon5626'
+
+inputs:
+  github-token:
+    description: 'GitHub token for authentication'
+    required: true
+  auto-close:
+    description: 'Whether to automatically close the issue or PR if created by a bot'
+    required: false
+    default: 'false'
+  tag:
+    description: 'Tag to apply to issues or PRs created by a bot'
+    required: false
+    default: ''
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
