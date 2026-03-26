@@ -1,10 +1,10 @@
-const core = require('@actions/core');
-const github = require('@actions/github');
-const { handleIssue } = require('./events/issue');
-const { handlePullRequest } = require('./events/pullRequest');
-const { handleRepositoryDispatch } = require('./events/repositoryDispatch');
+import * as core from '@actions/core';
+import * as github from '@actions/github';
+import { handleIssue } from './events/issue';
+import { handlePullRequest } from './events/pullRequest';
+import { handleRepositoryDispatch } from './events/repositoryDispatch';
 
-async function run() {
+async function run(): Promise<void> {
   const token = core.getInput('github-token', { required: true });
   const autoClose = core.getInput('auto-close') === 'true';
   const tag = core.getInput('tag');
@@ -29,6 +29,6 @@ async function run() {
   }
 }
 
-run().catch((error) => {
+run().catch((error: Error) => {
   core.setFailed(error.message);
 });

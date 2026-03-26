@@ -1,6 +1,161 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 3670:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.handleIssue = handleIssue;
+async function handleIssue(octokit, context) {
+    const { owner, repo } = context.repo;
+    const issueNumber = context.payload.issue.number;
+    await octokit.rest.issues.createComment({
+        owner,
+        repo,
+        issue_number: issueNumber,
+        body: 'Issue Test',
+    });
+    return issueNumber;
+}
+
+
+/***/ }),
+
+/***/ 1221:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.handlePullRequest = handlePullRequest;
+async function handlePullRequest(octokit, context) {
+    const { owner, repo } = context.repo;
+    const prNumber = context.payload.pull_request.number;
+    await octokit.rest.pulls.createReview({
+        owner,
+        repo,
+        pull_number: prNumber,
+        body: 'PullRequest Test',
+        event: 'COMMENT',
+    });
+    return prNumber;
+}
+
+
+/***/ }),
+
+/***/ 3663:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.handleRepositoryDispatch = handleRepositoryDispatch;
+async function handleRepositoryDispatch(octokit, context) {
+    const { owner, repo } = context.repo;
+    const clientPayload = context.payload.client_payload;
+    const number = clientPayload.number;
+    const type = clientPayload.type;
+    if (type === 'issue') {
+        await octokit.rest.issues.createComment({
+            owner,
+            repo,
+            issue_number: number,
+            body: 'RepositoryDispatch Test',
+        });
+    }
+    else if (type === 'pr') {
+        await octokit.rest.pulls.createReview({
+            owner,
+            repo,
+            pull_number: number,
+            body: 'RepositoryDispatch Test',
+            event: 'COMMENT',
+        });
+    }
+    return number;
+}
+
+
+/***/ }),
+
+/***/ 4935:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(7484));
+const github = __importStar(__nccwpck_require__(3228));
+const issue_1 = __nccwpck_require__(3670);
+const pullRequest_1 = __nccwpck_require__(1221);
+const repositoryDispatch_1 = __nccwpck_require__(3663);
+async function run() {
+    const token = core.getInput('github-token', { required: true });
+    const autoClose = core.getInput('auto-close') === 'true';
+    const tag = core.getInput('tag');
+    core.info(`token : ${token}. autoClose : ${autoClose}. tag : ${tag}.`);
+    const octokit = github.getOctokit(token);
+    const { context } = github;
+    const eventName = context.eventName;
+    if (eventName === 'issues') {
+        const issueNumber = await (0, issue_1.handleIssue)(octokit, context);
+        core.info(`Commented on issue #${issueNumber}.`);
+    }
+    else if (eventName === 'pull_request') {
+        const prNumber = await (0, pullRequest_1.handlePullRequest)(octokit, context);
+        core.info(`Commented on PR #${prNumber}.`);
+    }
+    else if (eventName === 'repository_dispatch') {
+        const number = await (0, repositoryDispatch_1.handleRepositoryDispatch)(octokit, context);
+        core.info(`Commented on #${number}.`);
+    }
+    else {
+        core.warning(`Unsupported event: ${eventName}`);
+    }
+}
+run().catch((error) => {
+    core.setFailed(error.message);
+});
+
+
+/***/ }),
+
 /***/ 4914:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -2072,7 +2227,7 @@ const Context = __importStar(__nccwpck_require__(1648));
 const Utils = __importStar(__nccwpck_require__(5156));
 // octokit + plugins
 const core_1 = __nccwpck_require__(1897);
-const plugin_rest_endpoint_methods_1 = __nccwpck_require__(4935);
+const plugin_rest_endpoint_methods_1 = __nccwpck_require__(7316);
 const plugin_paginate_rest_1 = __nccwpck_require__(8082);
 exports.context = new Context.Context();
 const baseUrl = Utils.getApiBaseUrl();
@@ -4652,7 +4807,7 @@ paginateRest.VERSION = VERSION;
 
 /***/ }),
 
-/***/ 4935:
+/***/ 7316:
 /***/ ((module) => {
 
 "use strict";
@@ -29922,85 +30077,6 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 152:
-/***/ ((module) => {
-
-async function handleIssue(octokit, context) {
-  const { owner, repo } = context.repo;
-  const issueNumber = context.payload.issue.number;
-
-  await octokit.rest.issues.createComment({
-    owner,
-    repo,
-    issue_number: issueNumber,
-    body: 'Issue Test',
-  });
-
-  return issueNumber;
-}
-
-module.exports = { handleIssue };
-
-
-/***/ }),
-
-/***/ 5551:
-/***/ ((module) => {
-
-async function handlePullRequest(octokit, context) {
-  const { owner, repo } = context.repo;
-  const prNumber = context.payload.pull_request.number;
-
-  await octokit.rest.pulls.createReview({
-    owner,
-    repo,
-    pull_number: prNumber,
-    body: 'PullRequest Test',
-    event: 'COMMENT',
-  });
-
-  return prNumber;
-}
-
-module.exports = { handlePullRequest };
-
-
-/***/ }),
-
-/***/ 9121:
-/***/ ((module) => {
-
-async function handleRepositoryDispatch(octokit, context) {
-  const { owner, repo } = context.repo;
-  const clientPayload = context.payload.client_payload;
-  const number = clientPayload.number;
-  const type = clientPayload.type;
-
-  if (type === 'issue') {
-    await octokit.rest.issues.createComment({
-      owner,
-      repo,
-      issue_number: number,
-      body: 'RepositoryDispatch Test',
-    });
-  } else if (type === 'pr') {
-    await octokit.rest.pulls.createReview({
-      owner,
-      repo,
-      pull_number: number,
-      body: 'RepositoryDispatch Test',
-      event: 'COMMENT',
-    });
-  }
-
-  return number;
-}
-
-module.exports = { handleRepositoryDispatch };
-
-
-/***/ }),
-
 /***/ 2613:
 /***/ ((module) => {
 
@@ -31912,40 +31988,12 @@ module.exports = parseParams
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-const core = __nccwpck_require__(7484);
-const github = __nccwpck_require__(3228);
-const { handleIssue } = __nccwpck_require__(152);
-const { handlePullRequest } = __nccwpck_require__(5551);
-const { handleRepositoryDispatch } = __nccwpck_require__(9121);
-
-async function run() {
-  const token = core.getInput('github-token', { required: true });
-  const autoClose = core.getInput('auto-close') === 'true';
-  const tag = core.getInput('tag');
-
-  const octokit = github.getOctokit(token);
-  const { context } = github;
-  const eventName = context.eventName;
-
-  if (eventName === 'issues') {
-    const issueNumber = await handleIssue(octokit, context);
-    core.info(`Commented on issue #${issueNumber}.`);
-  } else if (eventName === 'pull_request') {
-    const prNumber = await handlePullRequest(octokit, context);
-    core.info(`Commented on PR #${prNumber}.`);
-  } else if (eventName === 'repository_dispatch') {
-    const number = await handleRepositoryDispatch(octokit, context);
-    core.info(`Commented on #${number}.`);
-  } else {
-    core.warning(`Unsupported event: ${eventName}`);
-  }
-}
-
-run().catch((error) => {
-  core.setFailed(error.message);
-});
-
-module.exports = __webpack_exports__;
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(4935);
+/******/ 	module.exports = __webpack_exports__;
+/******/ 	
 /******/ })()
 ;

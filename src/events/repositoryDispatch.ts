@@ -1,4 +1,9 @@
-async function handleRepositoryDispatch(octokit, context) {
+import * as github from '@actions/github';
+import { Context } from '@actions/github/lib/context';
+
+type Octokit = ReturnType<typeof github.getOctokit>;
+
+export async function handleRepositoryDispatch(octokit: Octokit, context: Context): Promise<number> {
   const { owner, repo } = context.repo;
   const clientPayload = context.payload.client_payload;
   const number = clientPayload.number;
@@ -23,5 +28,3 @@ async function handleRepositoryDispatch(octokit, context) {
 
   return number;
 }
-
-module.exports = { handleRepositoryDispatch };

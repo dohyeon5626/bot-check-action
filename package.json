@@ -4,7 +4,7 @@
   "description": "A GitHub Action that verifies whether an issue or PR was created by a bot. Supports automatic issue deletion and tagging.",
   "main": "dist/index.js",
   "scripts": {
-    "build": "ncc build src/index.js -o dist"
+    "build": "tsc && ncc build build/index.js -o dist && rm -rf build"
   },
   "license": "MIT",
   "dependencies": {
@@ -12,6 +12,8 @@
     "@actions/github": "^6.0.0"
   },
   "devDependencies": {
-    "@vercel/ncc": "^0.38.1"
+    "@types/node": "^25.5.0",
+    "@vercel/ncc": "^0.38.1",
+    "typescript": "^6.0.2"
   }
 }
