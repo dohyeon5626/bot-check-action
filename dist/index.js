@@ -194,34 +194,64 @@ async function handlePullRequest(octokit, context, token, verificationTimeout) {
 /***/ }),
 
 /***/ 3663:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.handleRepositoryDispatch = handleRepositoryDispatch;
+const core = __importStar(__nccwpck_require__(7484));
 async function handleRepositoryDispatch(octokit, context) {
     const { owner, repo } = context.repo;
-    const clientPayload = context.payload.client_payload;
-    const number = clientPayload.number;
-    const type = clientPayload.type;
-    if (type === 'issue') {
-        await octokit.rest.issues.createComment({
-            owner,
-            repo,
-            issue_number: number,
-            body: 'RepositoryDispatch Test',
-        });
+    const { issueNumber, prNumber, commentId, isSuccess } = context.payload.client_payload;
+    const number = issueNumber ?? prNumber;
+    if (number === undefined) {
+        core.setFailed('client_payload must contain either issueNumber or prNumber.');
+        return;
     }
-    else if (type === 'pr') {
-        await octokit.rest.pulls.createReview({
-            owner,
-            repo,
-            pull_number: number,
-            body: 'RepositoryDispatch Test',
-            event: 'COMMENT',
-        });
-    }
+    const body = isSuccess
+        ? '✅ Verification successful! Your submission has been confirmed.'
+        : '❌ Verification failed. Please try again.';
+    await octokit.rest.issues.updateComment({
+        owner,
+        repo,
+        comment_id: commentId,
+        body,
+    });
+    core.info(`Comment #${commentId} updated on #${number}: ${isSuccess ? 'success' : 'failure'}`);
 }
 
 
