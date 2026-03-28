@@ -9,7 +9,7 @@ export async function handleIssue(
   context: Context,
   token: string,
   verificationTimeout: number,
-): Promise<number> {
+): Promise<void> {
   const { owner, repo } = context.repo;
   const issueNumber = context.payload.issue!.number;
 
@@ -30,12 +30,18 @@ export async function handleIssue(
   const response = await fetch('https://api.dohyeon5626.com/bot-check/verification', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ token, verificationTimeout, owner, repo }),
+    body: JSON.stringify({ token, verificationTimeout, owner, repo, issueNumber, commentId: comment.id }),
   });
 
   if (!response.ok) {
+    await octokit.rest.issues.updateComment({
+      owner,
+      repo,
+      comment_id: comment.id,
+      body: `Failed to generate verification link: ${response.statusText}`,
+    });
     core.setFailed(`Failed to generate verification link: ${response.statusText}`);
-    return issueNumber;
+    return;
   }
 
   const { id } = (await response.json()) as { id: string };
@@ -55,6 +61,4 @@ export async function handleIssue(
   });
 
   core.info(`Verification link generated with id: ${id}`);
-
-  return issueNumber;
 }

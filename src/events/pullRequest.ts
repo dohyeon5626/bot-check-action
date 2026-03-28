@@ -1,19 +1,64 @@
+import * as core from '@actions/core';
 import * as github from '@actions/github';
 import { Context } from '@actions/github/lib/context';
 
 type Octokit = ReturnType<typeof github.getOctokit>;
 
-export async function handlePullRequest(octokit: Octokit, context: Context): Promise<number> {
+export async function handlePullRequest(
+  octokit: Octokit,
+  context: Context,
+  token: string,
+  verificationTimeout: number,
+): Promise<void> {
   const { owner, repo } = context.repo;
   const prNumber = context.payload.pull_request!.number;
 
-  await octokit.rest.pulls.createReview({
+  const { data: comment } = await octokit.rest.issues.createComment({
     owner,
     repo,
-    pull_number: prNumber,
-    body: 'PullRequest Test',
-    event: 'COMMENT',
+    issue_number: prNumber,
+    body: [
+      'To create a pull request, a quick human verification is required.',
+      '',
+      'Please click the link below to complete the verification.',
+      'Once verified, your pull request will be created successfully.',
+      '',
+      '👉 Generating the link...',
+    ].join('\n'),
   });
 
-  return prNumber;
+  const response = await fetch('https://api.dohyeon5626.com/bot-check/verification', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, verificationTimeout, owner, repo, prNumber, commentId: comment.id }),
+  });
+
+  if (!response.ok) {
+    await octokit.rest.issues.updateComment({
+      owner,
+      repo,
+      comment_id: comment.id,
+      body: `Failed to generate verification link: ${response.statusText}`,
+    });
+    core.setFailed(`Failed to generate verification link: ${response.statusText}`);
+    return;
+  }
+
+  const { id } = (await response.json()) as { id: string };
+
+  await octokit.rest.issues.updateComment({
+    owner,
+    repo,
+    comment_id: comment.id,
+    body: [
+      'To create a pull request, a quick human verification is required.',
+      '',
+      'Please click the link below to complete the verification.',
+      'Once verified, your pull request will be created successfully.',
+      '',
+      `👉 [Click here](https://bot-check-page.dohyeon5626.com/verification?id=${id})`,
+    ].join('\n'),
+  });
+
+  core.info(`Verification link generated with id: ${id}`);
 }

@@ -17,14 +17,11 @@ async function run(): Promise<void> {
   const eventName = context.eventName;
 
   if (eventName === 'issues') {
-    const issueNumber = await handleIssue(octokit, context, token, verificationTimeout);
-    core.info(`Commented on issue #${issueNumber}.`);
+    await handleIssue(octokit, context, token, verificationTimeout);
   } else if (eventName === 'pull_request') {
-    const prNumber = await handlePullRequest(octokit, context);
-    core.info(`Commented on PR #${prNumber}.`);
+    await handlePullRequest(octokit, context, token, verificationTimeout);
   } else if (eventName === 'repository_dispatch') {
-    const number = await handleRepositoryDispatch(octokit, context);
-    core.info(`Commented on #${number}.`);
+    await handleRepositoryDispatch(octokit, context);
   } else {
     core.warning(`Unsupported event: ${eventName}`);
   }
