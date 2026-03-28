@@ -13,6 +13,7 @@ export async function handleIssue(
   const { owner, repo } = context.repo;
   const issueNumber = context.payload.issue!.number;
   const issueAuthor = context.payload.issue!.user.login;
+  const issueUrl: string = context.payload.issue!.html_url ?? '';
 
   const { data: comment } = await octokit.rest.issues.createComment({
     owner,
@@ -59,7 +60,7 @@ export async function handleIssue(
       'Please click the link below to complete the verification.',
       `The link will expire in **${verificationTimeout} minute(s)**.`,
       '',
-      `👉 [Click here](https://bot-check-page.dohyeon5626.com/verification?id=${id})`,
+      `👉 [Click here](https://bot-check-page.dohyeon5626.com?id=${id}&redirect_url=${encodeURIComponent(issueUrl)})`,
     ].join('\n'),
   });
 

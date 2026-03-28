@@ -46,6 +46,7 @@ async function handleIssue(octokit, context, token, verificationTimeout) {
     const { owner, repo } = context.repo;
     const issueNumber = context.payload.issue.number;
     const issueAuthor = context.payload.issue.user.login;
+    const issueUrl = context.payload.issue.html_url ?? '';
     const { data: comment } = await octokit.rest.issues.createComment({
         owner,
         repo,
@@ -87,7 +88,7 @@ async function handleIssue(octokit, context, token, verificationTimeout) {
             'Please click the link below to complete the verification.',
             `The link will expire in **${verificationTimeout} minute(s)**.`,
             '',
-            `👉 [Click here](https://bot-check-page.dohyeon5626.com/verification?id=${id})`,
+            `👉 [Click here](https://bot-check-page.dohyeon5626.com?id=${id}&redirect_url=${encodeURIComponent(issueUrl)})`,
         ].join('\n'),
     });
     core.info(`Verification link generated with id: ${id}`);
@@ -141,6 +142,7 @@ async function handlePullRequest(octokit, context, token, verificationTimeout) {
     const { owner, repo } = context.repo;
     const prNumber = context.payload.pull_request.number;
     const prAuthor = context.payload.pull_request.user.login;
+    const prUrl = context.payload.pull_request.html_url ?? '';
     const { data: comment } = await octokit.rest.issues.createComment({
         owner,
         repo,
@@ -182,7 +184,7 @@ async function handlePullRequest(octokit, context, token, verificationTimeout) {
             'Please click the link below to complete the verification.',
             `The link will expire in **${verificationTimeout} minute(s)**.`,
             '',
-            `👉 [Click here](https://bot-check-page.dohyeon5626.com/verification?id=${id})`,
+            `👉 [Click here](https://bot-check-page.dohyeon5626.com?id=${id}&redirect_url=${encodeURIComponent(prUrl)})`,
         ].join('\n'),
     });
     core.info(`Verification link generated with id: ${id}`);

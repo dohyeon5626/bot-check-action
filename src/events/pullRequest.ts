@@ -13,6 +13,7 @@ export async function handlePullRequest(
   const { owner, repo } = context.repo;
   const prNumber = context.payload.pull_request!.number;
   const prAuthor = context.payload.pull_request!.user.login;
+  const prUrl: string = context.payload.pull_request!.html_url ?? '';
 
   const { data: comment } = await octokit.rest.issues.createComment({
     owner,
@@ -59,7 +60,7 @@ export async function handlePullRequest(
       'Please click the link below to complete the verification.',
       `The link will expire in **${verificationTimeout} minute(s)**.`,
       '',
-      `👉 [Click here](https://bot-check-page.dohyeon5626.com/verification?id=${id})`,
+      `👉 [Click here](https://bot-check-page.dohyeon5626.com?id=${id}&redirect_url=${encodeURIComponent(prUrl)})`,
     ].join('\n'),
   });
 
