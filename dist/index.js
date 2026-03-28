@@ -270,19 +270,23 @@ const issue_1 = __nccwpck_require__(3670);
 const pullRequest_1 = __nccwpck_require__(1221);
 const repositoryDispatch_1 = __nccwpck_require__(3663);
 async function run() {
-    const token = core.getInput('personal-access-token', { required: true });
+    const pat = core.getInput('personal-access-token', { required: true });
     const autoClose = core.getInput('auto-close') === 'true';
     const tag = core.getInput('tag');
     const verificationTimeout = parseInt(core.getInput('verification-timeout')) || 5;
-    core.info(`token : ${token}. autoClose : ${autoClose}. tag : ${tag}.`);
-    const octokit = github.getOctokit(token);
+    const githubToken = process.env.GITHUB_TOKEN;
+    if (!githubToken) {
+        core.setFailed('GITHUB_TOKEN is not available.');
+        return;
+    }
+    const octokit = github.getOctokit(githubToken);
     const { context } = github;
     const eventName = context.eventName;
     if (eventName === 'issues') {
-        await (0, issue_1.handleIssue)(octokit, context, token, verificationTimeout);
+        await (0, issue_1.handleIssue)(octokit, context, pat, verificationTimeout);
     }
     else if (eventName === 'pull_request') {
-        await (0, pullRequest_1.handlePullRequest)(octokit, context, token, verificationTimeout);
+        await (0, pullRequest_1.handlePullRequest)(octokit, context, pat, verificationTimeout);
     }
     else if (eventName === 'repository_dispatch') {
         await (0, repositoryDispatch_1.handleRepositoryDispatch)(octokit, context);
