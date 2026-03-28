@@ -5,18 +5,13 @@ import { handlePullRequest } from './events/pullRequest';
 import { handleRepositoryDispatch } from './events/repositoryDispatch';
 
 async function run(): Promise<void> {
+  const commentAccountToken = core.getInput('comment-account-token');
   const pat = core.getInput('personal-access-token', { required: true });
   const autoClose = core.getInput('auto-close') === 'true';
   const tag = core.getInput('tag');
   const verificationTimeout = parseInt(core.getInput('verification-timeout')) || 5;
 
-  const githubToken = process.env.GITHUB_TOKEN;
-  if (!githubToken) {
-    core.setFailed('GITHUB_TOKEN is not available.');
-    return;
-  }
-
-  const octokit = github.getOctokit(githubToken);
+  const octokit = github.getOctokit(commentAccountToken || pat);
   const { context } = github;
   const eventName = context.eventName;
 

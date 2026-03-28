@@ -3,8 +3,12 @@ description: 'A GitHub Action that verifies whether an issue or PR was created b
 author: 'dohyeon5626'
 
 inputs:
+  comment-account-token:
+    description: 'Token for the account that posts comments. If not set, personal-access-token is used instead.'
+    required: false
+    default: ${{ github.token }}
   personal-access-token:
-    description: 'Personal access token for authentication'
+    description: 'Personal access token used for calling the verification API'
     required: true
   auto-close:
     description: 'Whether to automatically close the issue or PR if created by a bot'
