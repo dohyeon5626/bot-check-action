@@ -1,6 +1,6 @@
 # Bot Check Action<img src="https://github.com/user-attachments/assets/14e68075-fb8a-4cf3-8ce1-f104ff905c35" align=left width=100>
 
-![GitHub License](https://img.shields.io/github/license/dohyeon5626/bot-check-action?style=flat&color=green)
+![GitHub License](https://img.shields.io/github/license/dohyeon5626/bot-check-action?style=flat&color=green) ![GitHub Tag](https://img.shields.io/github/v/tag/dohyeon5626/bot-check-action?style=flat&color=green`)
 
 <img width="100%" align=center alt="readme" src="https://github.com/user-attachments/assets/d9db562b-b815-4e52-b7be-c04ce18c8c77">
 <br/><br/>
