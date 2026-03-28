@@ -20,7 +20,7 @@ async function run(): Promise<void> {
   } else if (eventName === 'pull_request') {
     await handlePullRequest(octokit, context, pat, verificationTimeout);
   } else if (eventName === 'repository_dispatch') {
-    await handleRepositoryDispatch(octokit, context);
+    await handleRepositoryDispatch(octokit, context, autoClose, tag);
   } else {
     core.warning(`Unsupported event: ${eventName}`);
   }

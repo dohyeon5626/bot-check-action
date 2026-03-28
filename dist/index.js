@@ -234,7 +234,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.handleRepositoryDispatch = handleRepositoryDispatch;
 const core = __importStar(__nccwpck_require__(7484));
-async function handleRepositoryDispatch(octokit, context) {
+async function handleRepositoryDispatch(octokit, context, autoClose, tag) {
     const { owner, repo } = context.repo;
     const { issueNumber, prNumber, commentId, isSuccess } = context.payload.client_payload;
     const number = issueNumber ?? prNumber;
@@ -242,15 +242,44 @@ async function handleRepositoryDispatch(octokit, context) {
         core.setFailed('client_payload must contain either issueNumber or prNumber.');
         return;
     }
+    const type = issueNumber !== undefined ? 'issue' : 'pull request';
     const body = isSuccess
-        ? '✅ Verification successful! Your submission has been confirmed.'
-        : '❌ Verification failed. Please try again.';
+        ? [
+            `✅ Human verification for this ${type} has been completed successfully.`,
+            '',
+            'Your submission is confirmed. Thank you for verifying!',
+        ].join('\n')
+        : [
+            `❌ Human verification for this ${type} has failed or expired.`,
+            '',
+            'Please create a new issue or pull request and complete the verification in time.',
+        ].join('\n');
     await octokit.rest.issues.updateComment({
         owner,
         repo,
         comment_id: commentId,
         body,
     });
+    if (!isSuccess) {
+        if (autoClose) {
+            await octokit.rest.issues.update({
+                owner,
+                repo,
+                issue_number: number,
+                state: 'closed',
+            });
+            core.info(`Closed #${number} due to failed verification.`);
+        }
+        if (tag) {
+            await octokit.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number: number,
+                labels: [tag],
+            });
+            core.info(`Added label "${tag}" to #${number}.`);
+        }
+    }
     core.info(`Comment #${commentId} updated on #${number}: ${isSuccess ? 'success' : 'failure'}`);
 }
 
@@ -317,7 +346,7 @@ async function run() {
         await (0, pullRequest_1.handlePullRequest)(octokit, context, pat, verificationTimeout);
     }
     else if (eventName === 'repository_dispatch') {
-        await (0, repositoryDispatch_1.handleRepositoryDispatch)(octokit, context);
+        await (0, repositoryDispatch_1.handleRepositoryDispatch)(octokit, context, autoClose, tag);
     }
     else {
         core.warning(`Unsupported event: ${eventName}`);
