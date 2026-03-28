@@ -3,8 +3,8 @@ description: 'A GitHub Action that verifies whether an issue or PR was created b
 author: 'dohyeon5626'
 
 inputs:
-  github-token:
-    description: 'GitHub token for authentication'
+  personal-access-token:
+    description: 'Personal access token for authentication'
     required: true
   auto-close:
     description: 'Whether to automatically close the issue or PR if created by a bot'
@@ -14,6 +14,10 @@ inputs:
     description: 'Tag to apply to issues or PRs created by a bot'
     required: false
     default: ''
+  verification-timeout:
+    description: 'Verification code expiration time in minutes'
+    required: false
+    default: '5'
 
 runs:
   using: 'node20'
