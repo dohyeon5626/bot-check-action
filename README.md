@@ -7,6 +7,8 @@
 
 A GitHub Action that verifies whether an issue or pull request was created by a human. Supports auto-closing and tagging of unverified submissions.
 
+-> [Test Here](https://github.com/dohyeon5626/bot-check-action-example/issues)
+
 ### How To Use
 ```yaml
 name: Bot Check
