@@ -12,16 +12,18 @@ export async function handlePullRequest(
 ): Promise<void> {
   const { owner, repo } = context.repo;
   const prNumber = context.payload.pull_request!.number;
+  const prAuthor = context.payload.pull_request!.user.login;
 
   const { data: comment } = await octokit.rest.issues.createComment({
     owner,
     repo,
     issue_number: prNumber,
     body: [
-      'To create a pull request, a quick human verification is required.',
+      `@${prAuthor}`,
+      'A quick human verification is required to confirm this pull request.',
       '',
       'Please click the link below to complete the verification.',
-      'Once verified, your pull request will be created successfully.',
+      `The link will expire in **${verificationTimeout} minute(s)**.`,
       '',
       '👉 Generating the link...',
     ].join('\n'),
@@ -51,10 +53,11 @@ export async function handlePullRequest(
     repo,
     comment_id: comment.id,
     body: [
-      'To create a pull request, a quick human verification is required.',
+      `@${prAuthor}`,
+      'A quick human verification is required to confirm this pull request.',
       '',
       'Please click the link below to complete the verification.',
-      'Once verified, your pull request will be created successfully.',
+      `The link will expire in **${verificationTimeout} minute(s)**.`,
       '',
       `👉 [Click here](https://bot-check-page.dohyeon5626.com/verification?id=${id})`,
     ].join('\n'),

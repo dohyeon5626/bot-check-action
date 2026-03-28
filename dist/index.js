@@ -45,15 +45,17 @@ const core = __importStar(__nccwpck_require__(7484));
 async function handleIssue(octokit, context, token, verificationTimeout) {
     const { owner, repo } = context.repo;
     const issueNumber = context.payload.issue.number;
+    const issueAuthor = context.payload.issue.user.login;
     const { data: comment } = await octokit.rest.issues.createComment({
         owner,
         repo,
         issue_number: issueNumber,
         body: [
-            'To create an issue, a quick human verification is required.',
+            `@${issueAuthor}`,
+            'A quick human verification is required to confirm this issue.',
             '',
             'Please click the link below to complete the verification.',
-            'Once verified, your issue will be created successfully.',
+            `The link will expire in **${verificationTimeout} minute(s)**.`,
             '',
             '👉 Generating the link...',
         ].join('\n'),
@@ -79,10 +81,11 @@ async function handleIssue(octokit, context, token, verificationTimeout) {
         repo,
         comment_id: comment.id,
         body: [
-            'To create an issue, a quick human verification is required.',
+            `@${issueAuthor}`,
+            'A quick human verification is required to confirm this issue.',
             '',
             'Please click the link below to complete the verification.',
-            'Once verified, your issue will be created successfully.',
+            `The link will expire in **${verificationTimeout} minute(s)**.`,
             '',
             `👉 [Click here](https://bot-check-page.dohyeon5626.com/verification?id=${id})`,
         ].join('\n'),
@@ -137,15 +140,17 @@ const core = __importStar(__nccwpck_require__(7484));
 async function handlePullRequest(octokit, context, token, verificationTimeout) {
     const { owner, repo } = context.repo;
     const prNumber = context.payload.pull_request.number;
+    const prAuthor = context.payload.pull_request.user.login;
     const { data: comment } = await octokit.rest.issues.createComment({
         owner,
         repo,
         issue_number: prNumber,
         body: [
-            'To create a pull request, a quick human verification is required.',
+            `@${prAuthor}`,
+            'A quick human verification is required to confirm this pull request.',
             '',
             'Please click the link below to complete the verification.',
-            'Once verified, your pull request will be created successfully.',
+            `The link will expire in **${verificationTimeout} minute(s)**.`,
             '',
             '👉 Generating the link...',
         ].join('\n'),
@@ -171,10 +176,11 @@ async function handlePullRequest(octokit, context, token, verificationTimeout) {
         repo,
         comment_id: comment.id,
         body: [
-            'To create a pull request, a quick human verification is required.',
+            `@${prAuthor}`,
+            'A quick human verification is required to confirm this pull request.',
             '',
             'Please click the link below to complete the verification.',
-            'Once verified, your pull request will be created successfully.',
+            `The link will expire in **${verificationTimeout} minute(s)**.`,
             '',
             `👉 [Click here](https://bot-check-page.dohyeon5626.com/verification?id=${id})`,
         ].join('\n'),
@@ -214,7 +220,6 @@ async function handleRepositoryDispatch(octokit, context) {
             event: 'COMMENT',
         });
     }
-    return number;
 }
 
 

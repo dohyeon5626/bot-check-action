@@ -12,16 +12,18 @@ export async function handleIssue(
 ): Promise<void> {
   const { owner, repo } = context.repo;
   const issueNumber = context.payload.issue!.number;
+  const issueAuthor = context.payload.issue!.user.login;
 
   const { data: comment } = await octokit.rest.issues.createComment({
     owner,
     repo,
     issue_number: issueNumber,
     body: [
-      'To create an issue, a quick human verification is required.',
+      `@${issueAuthor}`,
+      'A quick human verification is required to confirm this issue.',
       '',
       'Please click the link below to complete the verification.',
-      'Once verified, your issue will be created successfully.',
+      `The link will expire in **${verificationTimeout} minute(s)**.`,
       '',
       '👉 Generating the link...',
     ].join('\n'),
@@ -51,10 +53,11 @@ export async function handleIssue(
     repo,
     comment_id: comment.id,
     body: [
-      'To create an issue, a quick human verification is required.',
+      `@${issueAuthor}`,
+      'A quick human verification is required to confirm this issue.',
       '',
       'Please click the link below to complete the verification.',
-      'Once verified, your issue will be created successfully.',
+      `The link will expire in **${verificationTimeout} minute(s)**.`,
       '',
       `👉 [Click here](https://bot-check-page.dohyeon5626.com/verification?id=${id})`,
     ].join('\n'),
