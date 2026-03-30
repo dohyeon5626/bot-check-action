@@ -1,6 +1,7 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import { Context } from '@actions/github/lib/context';
+import { hasTrustedPermission } from '../utils/hasPermission';
 
 type Octokit = ReturnType<typeof github.getOctokit>;
 
@@ -9,11 +10,17 @@ export async function handlePullRequest(
   context: Context,
   token: string,
   verificationTimeout: number,
+  trustedPermission: string,
 ): Promise<void> {
   const { owner, repo } = context.repo;
   const prNumber = context.payload.pull_request!.number;
   const prAuthor = context.payload.pull_request!.user.login;
   const prUrl: string = context.payload.pull_request!.html_url ?? '';
+
+  if (await hasTrustedPermission(octokit, context, prAuthor, trustedPermission)) {
+    core.info(`Skipping verification for @${prAuthor} (trusted permission: ${trustedPermission}).`);
+    return;
+  }
 
   const { data: comment } = await octokit.rest.issues.createComment({
     owner,

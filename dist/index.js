@@ -42,11 +42,16 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.handleIssue = handleIssue;
 const core = __importStar(__nccwpck_require__(7484));
-async function handleIssue(octokit, context, token, verificationTimeout) {
+const hasPermission_1 = __nccwpck_require__(6294);
+async function handleIssue(octokit, context, token, verificationTimeout, trustedPermission) {
     const { owner, repo } = context.repo;
     const issueNumber = context.payload.issue.number;
     const issueAuthor = context.payload.issue.user.login;
     const issueUrl = context.payload.issue.html_url ?? '';
+    if (await (0, hasPermission_1.hasTrustedPermission)(octokit, context, issueAuthor, trustedPermission)) {
+        core.info(`Skipping verification for @${issueAuthor} (trusted permission: ${trustedPermission}).`);
+        return;
+    }
     const { data: comment } = await octokit.rest.issues.createComment({
         owner,
         repo,
@@ -138,11 +143,16 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.handlePullRequest = handlePullRequest;
 const core = __importStar(__nccwpck_require__(7484));
-async function handlePullRequest(octokit, context, token, verificationTimeout) {
+const hasPermission_1 = __nccwpck_require__(6294);
+async function handlePullRequest(octokit, context, token, verificationTimeout, trustedPermission) {
     const { owner, repo } = context.repo;
     const prNumber = context.payload.pull_request.number;
     const prAuthor = context.payload.pull_request.user.login;
     const prUrl = context.payload.pull_request.html_url ?? '';
+    if (await (0, hasPermission_1.hasTrustedPermission)(octokit, context, prAuthor, trustedPermission)) {
+        core.info(`Skipping verification for @${prAuthor} (trusted permission: ${trustedPermission}).`);
+        return;
+    }
     const { data: comment } = await octokit.rest.issues.createComment({
         owner,
         repo,
@@ -336,14 +346,15 @@ async function run() {
     const autoClose = core.getInput('auto-close') === 'true';
     const tag = core.getInput('tag');
     const verificationTimeout = parseInt(core.getInput('verification-timeout')) || 5;
+    const trustedPermission = core.getInput('trusted-permission');
     const octokit = github.getOctokit(commentAccountToken || pat);
     const { context } = github;
     const eventName = context.eventName;
     if (eventName === 'issues') {
-        await (0, issue_1.handleIssue)(octokit, context, pat, verificationTimeout);
+        await (0, issue_1.handleIssue)(octokit, context, pat, verificationTimeout, trustedPermission);
     }
     else if (eventName === 'pull_request') {
-        await (0, pullRequest_1.handlePullRequest)(octokit, context, pat, verificationTimeout);
+        await (0, pullRequest_1.handlePullRequest)(octokit, context, pat, verificationTimeout, trustedPermission);
     }
     else if (eventName === 'repository_dispatch') {
         await (0, repositoryDispatch_1.handleRepositoryDispatch)(octokit, context, autoClose, tag);
@@ -355,6 +366,31 @@ async function run() {
 run().catch((error) => {
     core.setFailed(error.message);
 });
+
+
+/***/ }),
+
+/***/ 6294:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.hasTrustedPermission = hasTrustedPermission;
+const PERMISSION_LEVELS = ['none', 'read', 'write', 'admin'];
+async function hasTrustedPermission(octokit, context, username, trustedPermission) {
+    if (!trustedPermission)
+        return false;
+    const { owner, repo } = context.repo;
+    const { data } = await octokit.rest.repos.getCollaboratorPermissionLevel({
+        owner,
+        repo,
+        username,
+    });
+    const userLevel = PERMISSION_LEVELS.indexOf(data.permission);
+    const requiredLevel = PERMISSION_LEVELS.indexOf(trustedPermission);
+    return userLevel >= requiredLevel;
+}
 
 
 /***/ }),

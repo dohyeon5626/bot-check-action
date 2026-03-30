@@ -46,5 +46,6 @@ jobs:
 | `auto-close` | ❌ | `false` | Automatically close the issue or PR if verification fails. |
 | `tag` | ❌ | `''` | Label to add to the issue or PR if verification fails. The label must already exist in the repository. |
 | `verification-timeout` | ❌ | `5` | Verification link expiration time in minutes. (5~60) |
+| `trusted-permission` | ❌ | `''` | Minimum permission level to skip verification. One of: `read`, `write`, `admin`. Leave empty to require verification from everyone. |
 
 > Works with [Bot Check Page](https://github.com/dohyeon5626/bot-check-page), [Serverless Functions](https://github.com/dohyeon5626/serverless-functions/tree/main/bot-check)

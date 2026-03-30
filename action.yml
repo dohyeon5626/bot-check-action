@@ -22,6 +22,10 @@ inputs:
     description: 'Verification code expiration time in minutes'
     required: false
     default: '5'
+  trusted-permission:
+    description: 'Minimum permission level to skip verification. One of: read, write, admin. Leave empty to require verification from everyone.'
+    required: false
+    default: ''
 
 runs:
   using: 'node20'

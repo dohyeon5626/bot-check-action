@@ -10,15 +10,16 @@ async function run(): Promise<void> {
   const autoClose = core.getInput('auto-close') === 'true';
   const tag = core.getInput('tag');
   const verificationTimeout = parseInt(core.getInput('verification-timeout')) || 5;
+  const trustedPermission = core.getInput('trusted-permission');
 
   const octokit = github.getOctokit(commentAccountToken || pat);
   const { context } = github;
   const eventName = context.eventName;
 
   if (eventName === 'issues') {
-    await handleIssue(octokit, context, pat, verificationTimeout);
+    await handleIssue(octokit, context, pat, verificationTimeout, trustedPermission);
   } else if (eventName === 'pull_request') {
-    await handlePullRequest(octokit, context, pat, verificationTimeout);
+    await handlePullRequest(octokit, context, pat, verificationTimeout, trustedPermission);
   } else if (eventName === 'repository_dispatch') {
     await handleRepositoryDispatch(octokit, context, autoClose, tag);
   } else {

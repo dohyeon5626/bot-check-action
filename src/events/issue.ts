@@ -1,6 +1,7 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import { Context } from '@actions/github/lib/context';
+import { hasTrustedPermission } from '../utils/hasPermission';
 
 type Octokit = ReturnType<typeof github.getOctokit>;
 
@@ -9,11 +10,17 @@ export async function handleIssue(
   context: Context,
   token: string,
   verificationTimeout: number,
+  trustedPermission: string,
 ): Promise<void> {
   const { owner, repo } = context.repo;
   const issueNumber = context.payload.issue!.number;
   const issueAuthor = context.payload.issue!.user.login;
   const issueUrl: string = context.payload.issue!.html_url ?? '';
+
+  if (await hasTrustedPermission(octokit, context, issueAuthor, trustedPermission)) {
+    core.info(`Skipping verification for @${issueAuthor} (trusted permission: ${trustedPermission}).`);
+    return;
+  }
 
   const { data: comment } = await octokit.rest.issues.createComment({
     owner,
