@@ -43,13 +43,23 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.handleIssue = handleIssue;
 const core = __importStar(__nccwpck_require__(7484));
 const hasPermission_1 = __nccwpck_require__(6294);
-async function handleIssue(octokit, context, token, verificationTimeout, trustedPermission) {
+const isAllowedUser_1 = __nccwpck_require__(5686);
+const isFirstTimeContributor_1 = __nccwpck_require__(3509);
+async function handleIssue(octokit, context, token, verificationTimeout, trustedPermission, allowedUsers, firstTimeOnly) {
     const { owner, repo } = context.repo;
     const issueNumber = context.payload.issue.number;
     const issueAuthor = context.payload.issue.user.login;
     const issueUrl = context.payload.issue.html_url ?? '';
+    if ((0, isAllowedUser_1.isAllowedUser)(issueAuthor, allowedUsers)) {
+        core.info(`Skipping verification for @${issueAuthor} (allowed user).`);
+        return;
+    }
     if (await (0, hasPermission_1.hasTrustedPermission)(octokit, context, issueAuthor, trustedPermission)) {
         core.info(`Skipping verification for @${issueAuthor} (trusted permission: ${trustedPermission}).`);
+        return;
+    }
+    if (firstTimeOnly && !(await (0, isFirstTimeContributor_1.isFirstTimeContributor)(octokit, context, issueAuthor))) {
+        core.info(`Skipping verification for @${issueAuthor} (returning contributor).`);
         return;
     }
     const { data: comment } = await octokit.rest.issues.createComment({
@@ -144,13 +154,23 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.handlePullRequest = handlePullRequest;
 const core = __importStar(__nccwpck_require__(7484));
 const hasPermission_1 = __nccwpck_require__(6294);
-async function handlePullRequest(octokit, context, token, verificationTimeout, trustedPermission) {
+const isAllowedUser_1 = __nccwpck_require__(5686);
+const isFirstTimeContributor_1 = __nccwpck_require__(3509);
+async function handlePullRequest(octokit, context, token, verificationTimeout, trustedPermission, allowedUsers, firstTimeOnly) {
     const { owner, repo } = context.repo;
     const prNumber = context.payload.pull_request.number;
     const prAuthor = context.payload.pull_request.user.login;
     const prUrl = context.payload.pull_request.html_url ?? '';
+    if ((0, isAllowedUser_1.isAllowedUser)(prAuthor, allowedUsers)) {
+        core.info(`Skipping verification for @${prAuthor} (allowed user).`);
+        return;
+    }
     if (await (0, hasPermission_1.hasTrustedPermission)(octokit, context, prAuthor, trustedPermission)) {
         core.info(`Skipping verification for @${prAuthor} (trusted permission: ${trustedPermission}).`);
+        return;
+    }
+    if (firstTimeOnly && !(await (0, isFirstTimeContributor_1.isFirstTimeContributor)(octokit, context, prAuthor))) {
+        core.info(`Skipping verification for @${prAuthor} (returning contributor).`);
         return;
     }
     const { data: comment } = await octokit.rest.issues.createComment({
@@ -347,14 +367,16 @@ async function run() {
     const tag = core.getInput('tag');
     const verificationTimeout = parseInt(core.getInput('verification-timeout')) || 5;
     const trustedPermission = core.getInput('trusted-permission');
+    const allowedUsers = core.getInput('allowed-users');
+    const firstTimeOnly = core.getInput('first-time-only') === 'true';
     const octokit = github.getOctokit(commentAccountToken || pat);
     const { context } = github;
     const eventName = context.eventName;
     if (eventName === 'issues') {
-        await (0, issue_1.handleIssue)(octokit, context, pat, verificationTimeout, trustedPermission);
+        await (0, issue_1.handleIssue)(octokit, context, pat, verificationTimeout, trustedPermission, allowedUsers, firstTimeOnly);
     }
     else if (eventName === 'pull_request') {
-        await (0, pullRequest_1.handlePullRequest)(octokit, context, pat, verificationTimeout, trustedPermission);
+        await (0, pullRequest_1.handlePullRequest)(octokit, context, pat, verificationTimeout, trustedPermission, allowedUsers, firstTimeOnly);
     }
     else if (eventName === 'repository_dispatch') {
         await (0, repositoryDispatch_1.handleRepositoryDispatch)(octokit, context, autoClose, tag);
@@ -390,6 +412,42 @@ async function hasTrustedPermission(octokit, context, username, trustedPermissio
     const userLevel = PERMISSION_LEVELS.indexOf(data.permission);
     const requiredLevel = PERMISSION_LEVELS.indexOf(trustedPermission);
     return userLevel >= requiredLevel;
+}
+
+
+/***/ }),
+
+/***/ 5686:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.isAllowedUser = isAllowedUser;
+function isAllowedUser(username, allowedUsers) {
+    if (!allowedUsers)
+        return false;
+    return allowedUsers.split(',').map((u) => u.trim()).includes(username);
+}
+
+
+/***/ }),
+
+/***/ 3509:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.isFirstTimeContributor = isFirstTimeContributor;
+async function isFirstTimeContributor(octokit, context, username) {
+    const { owner, repo } = context.repo;
+    const { data } = await octokit.rest.repos.listContributors({
+        owner,
+        repo,
+        per_page: 100,
+    });
+    return !data.some((contributor) => contributor.login === username);
 }
 
 

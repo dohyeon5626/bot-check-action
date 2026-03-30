@@ -2,6 +2,8 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import { Context } from '@actions/github/lib/context';
 import { hasTrustedPermission } from '../utils/hasPermission';
+import { isAllowedUser } from '../utils/isAllowedUser';
+import { isFirstTimeContributor } from '../utils/isFirstTimeContributor';
 
 type Octokit = ReturnType<typeof github.getOctokit>;
 
@@ -11,14 +13,26 @@ export async function handlePullRequest(
   token: string,
   verificationTimeout: number,
   trustedPermission: string,
+  allowedUsers: string,
+  firstTimeOnly: boolean,
 ): Promise<void> {
   const { owner, repo } = context.repo;
   const prNumber = context.payload.pull_request!.number;
   const prAuthor = context.payload.pull_request!.user.login;
   const prUrl: string = context.payload.pull_request!.html_url ?? '';
 
+  if (isAllowedUser(prAuthor, allowedUsers)) {
+    core.info(`Skipping verification for @${prAuthor} (allowed user).`);
+    return;
+  }
+
   if (await hasTrustedPermission(octokit, context, prAuthor, trustedPermission)) {
     core.info(`Skipping verification for @${prAuthor} (trusted permission: ${trustedPermission}).`);
+    return;
+  }
+
+  if (firstTimeOnly && !(await isFirstTimeContributor(octokit, context, prAuthor))) {
+    core.info(`Skipping verification for @${prAuthor} (returning contributor).`);
     return;
   }
 

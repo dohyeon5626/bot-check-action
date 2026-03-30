@@ -11,15 +11,17 @@ async function run(): Promise<void> {
   const tag = core.getInput('tag');
   const verificationTimeout = parseInt(core.getInput('verification-timeout')) || 5;
   const trustedPermission = core.getInput('trusted-permission');
+  const allowedUsers = core.getInput('allowed-users');
+  const firstTimeOnly = core.getInput('first-time-only') === 'true';
 
   const octokit = github.getOctokit(commentAccountToken || pat);
   const { context } = github;
   const eventName = context.eventName;
 
   if (eventName === 'issues') {
-    await handleIssue(octokit, context, pat, verificationTimeout, trustedPermission);
+    await handleIssue(octokit, context, pat, verificationTimeout, trustedPermission, allowedUsers, firstTimeOnly);
   } else if (eventName === 'pull_request') {
-    await handlePullRequest(octokit, context, pat, verificationTimeout, trustedPermission);
+    await handlePullRequest(octokit, context, pat, verificationTimeout, trustedPermission, allowedUsers, firstTimeOnly);
   } else if (eventName === 'repository_dispatch') {
     await handleRepositoryDispatch(octokit, context, autoClose, tag);
   } else {

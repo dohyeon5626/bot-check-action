@@ -47,5 +47,7 @@ jobs:
 | `tag` | ❌ | `''` | Label to add to the issue or PR if verification fails. The label must already exist in the repository. |
 | `verification-timeout` | ❌ | `5` | Verification link expiration time in minutes. (5~60) |
 | `trusted-permission` | ❌ | `''` | Minimum permission level to skip verification. One of: `read`, `write`, `admin`. Leave empty to require verification from everyone. |
+| `allowed-users` | ❌ | `''` | Comma-separated list of usernames to skip verification (e.g. `alice,bob`). |
+| `first-time-only` | ❌ | `false` | If `true`, only first-time contributors are required to verify. Returning contributors are skipped. |
 
 > Works with [Bot Check Page](https://github.com/dohyeon5626/bot-check-page), [Serverless Functions](https://github.com/dohyeon5626/serverless-functions/tree/main/bot-check)

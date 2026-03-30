@@ -26,6 +26,14 @@ inputs:
     description: 'Minimum permission level to skip verification. One of: read, write, admin. Leave empty to require verification from everyone.'
     required: false
     default: ''
+  allowed-users:
+    description: 'Comma-separated list of usernames to skip verification (e.g. alice,bob).'
+    required: false
+    default: ''
+  first-time-only:
+    description: 'If true, only first-time contributors are required to verify. Returning contributors are skipped.'
+    required: false
+    default: 'false'
 
 runs:
   using: 'node20'

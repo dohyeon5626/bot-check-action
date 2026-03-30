@@ -2,6 +2,8 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import { Context } from '@actions/github/lib/context';
 import { hasTrustedPermission } from '../utils/hasPermission';
+import { isAllowedUser } from '../utils/isAllowedUser';
+import { isFirstTimeContributor } from '../utils/isFirstTimeContributor';
 
 type Octokit = ReturnType<typeof github.getOctokit>;
 
@@ -11,14 +13,26 @@ export async function handleIssue(
   token: string,
   verificationTimeout: number,
   trustedPermission: string,
+  allowedUsers: string,
+  firstTimeOnly: boolean,
 ): Promise<void> {
   const { owner, repo } = context.repo;
   const issueNumber = context.payload.issue!.number;
   const issueAuthor = context.payload.issue!.user.login;
   const issueUrl: string = context.payload.issue!.html_url ?? '';
 
+  if (isAllowedUser(issueAuthor, allowedUsers)) {
+    core.info(`Skipping verification for @${issueAuthor} (allowed user).`);
+    return;
+  }
+
   if (await hasTrustedPermission(octokit, context, issueAuthor, trustedPermission)) {
     core.info(`Skipping verification for @${issueAuthor} (trusted permission: ${trustedPermission}).`);
+    return;
+  }
+
+  if (firstTimeOnly && !(await isFirstTimeContributor(octokit, context, issueAuthor))) {
+    core.info(`Skipping verification for @${issueAuthor} (returning contributor).`);
     return;
   }
 
