@@ -38,6 +38,9 @@ jobs:
           auto-close: 'true'
           tag: 'bot'
           verification-timeout: '10'
+          trusted-permission: 'write'
+          allowed-users: 'alice,bob'
+          first-time-only: 'true'
 ```
 | Input | Required | Default | Description |
 |-------|----------|---------|-------------|
